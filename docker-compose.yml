@@ -10,19 +10,13 @@ services:
     networks:
       - proxy
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.feuerwehr-secured.rule=Host(`feuerwehr.${DOMAIN}`)"
-      - "traefik.http.routers.feuerwehr-secured.entrypoints=websecure"
-      - "traefik.http.routers.feuerwehr-secured.tls.certresolver=mytlschallenge"
-      # attach both Authelia and our CSP middleware
-      - "traefik.http.routers.feuerwehr-secured.middlewares=authelia,feuerwehr-csp"
-      - "traefik.http.routers.feuerwehr-secured.service=feuerwehr-service"
-      - "traefik.http.services.feuerwehr-service.loadbalancer.server.port=8000"
-
-      # define the CSP middleware inline
-      - "traefik.http.middlewares.feuerwehr-csp.headers.contentSecurityPolicy=default-src 'self'; script-src 'self' https://unpkg.com 'unsafe-inline' 'unsafe-eval'; style-src 'self' https://unpkg.com 'unsafe-inline'; img-src 'self' data: blob: https://*.tile.openstreetmap.org; connect-src 'self' https://nominatim.openstreetmap.org https://api.open-meteo.com; frame-ancestors 'self';"
-      - "traefik.http.middlewares.feuerwehr-csp.headers.contentTypeNosniff=true"
-      - "traefik.http.middlewares.feuerwehr-csp.headers.browserXssFilter=true"
+      - "traefik.enable=true"                                                  #<== Enable traefik
+      - "traefik.http.routers.feuerwehr-secured.rule=Host(`feuerwehr.${DOMAIN}`)"  #<== Set domain
+      - "traefik.http.routers.feuerwehr-secured.entrypoints=websecure"           #<== Set entry point for HTTPS
+      - "traefik.http.routers.feuerwehr-secured.tls.certresolver=mytlschallenge" #<== Set certsresolvers for https
+      - "traefik.http.routers.feuerwehr-secured.middlewares=authelia"            #<== Add Authelia middlewares to protect login
+      - "traefik.http.routers.feuerwehr-secured.service=feuerwehr-service"         #<== Set service
+      - "traefik.http.services.feuerwehr-service.loadbalancer.server.port=8000"    #<== Set target port on container
 
 networks:
   proxy:

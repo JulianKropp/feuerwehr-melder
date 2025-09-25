@@ -329,7 +329,11 @@
   }
 
   async function apiCall(endpoint) {
-    const resp = await fetch(endpoint, { headers: { 'Accept': 'application/json' } });
+    const resp = await fetch(endpoint, {
+      headers: { 'Accept': 'application/json' },
+      // Include same-site cookies (Authelia session) so protected endpoints don't redirect
+      credentials: 'include'
+    });
     if (!resp.ok) throw new Error(`${endpoint} -> ${resp.status}`);
     return resp.json();
   }

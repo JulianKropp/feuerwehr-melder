@@ -1,7 +1,7 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-
+from fastapi.middleware.cors import CORSMiddleware
 from app.api.router import api_router
 from app.db.sql.connect import create_tables, AsyncSessionLocal
 from app.core.websockets import manager
@@ -18,6 +18,14 @@ app = FastAPI(
     title="Feuerwehr Melder",
     description="An application to manage fire department incidents and vehicles.",
     version="0.1.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 @app.on_event("startup")

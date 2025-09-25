@@ -578,7 +578,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (vehiclesPollTimer) return;
         vehiclesPollTimer = setInterval(async () => {
             try {
-                const latest = await apiCall('/api/vehicles');
+                const latest = await apiCall('/api/vehicles/');
                 if (Array.isArray(latest) && vehiclesChanged(state.vehicles, latest)) {
                     state.vehicles = latest;
                     syncIncidentVehicleStatuses();
@@ -628,6 +628,10 @@ document.addEventListener('DOMContentLoaded', () => {
             headers['Authorization'] = `Bearer ${state.auth.token}`;
         }
         const options = { method, headers };
+        // Ensure Authelia (or other) auth/session cookies are sent with requests
+        // This is required so protected backend endpoints do not redirect the XHR/fetch to login
+        // when accessed from the same site via relative URLs like /api/...
+        options.credentials = 'include';
         if (body) {
             options.body = isAuth ? new URLSearchParams(body) : JSON.stringify(body);
             if (isAuth) headers['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -722,7 +726,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (partial.hasOwnProperty('alarmSound')) payload.alarm_sound = partial.alarmSound;
             if (partial.hasOwnProperty('speechLanguage')) payload.speech_language = partial.speechLanguage;
             if (partial.hasOwnProperty('weatherLocation')) payload.weather_location = partial.weatherLocation;
-            const updated = await apiCall('/api/options', 'PUT', payload);
+            const updated = await apiCall('/api/options/', 'PUT', payload);
             if (updated) {
                 state.settings.audioEnabled = !!updated.audio_enabled;
                 state.settings.speechEnabled = !!updated.speech_enabled;
@@ -794,10 +798,10 @@ document.addEventListener('DOMContentLoaded', () => {
             vehicle_ids: selectedVehicleIds,
         };
         try {
-            await apiCall(id ? `/api/incidents/${id}` : '/api/incidents', id ? 'PUT' : 'POST', data);
+            await apiCall(id ? `/api/incidents/${id}` : '/api/incidents/', id ? 'PUT' : 'POST', data);
             closeModal(incidentModal);
             // Re-fetch to ensure latest data even if WS message is missed
-            const incidents = await apiCall('/api/incidents');
+            const incidents = await apiCall('/api/incidents/');
             state.incidents = incidents || [];
             renderAll();
         } catch (error) {
@@ -814,9 +818,9 @@ document.addEventListener('DOMContentLoaded', () => {
             status: e.target.querySelector('#vehicle-status').value,
         };
         try {
-            await apiCall(id ? `/api/vehicles/${id}` : '/api/vehicles', id ? 'PUT' : 'POST', data);
+            await apiCall(id ? `/api/vehicles/${id}` : '/api/vehicles/', id ? 'PUT' : 'POST', data);
             closeModal(vehicleModal);
-            const vehicles = await apiCall('/api/vehicles');
+            const vehicles = await apiCall('/api/vehicles/');
             state.vehicles = vehicles || [];
             renderAll();
         } catch (error) {
@@ -856,7 +860,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     try {
                         await apiCall(`/api/${type}/${id}`, 'DELETE');
                         // Refresh list after deletion
-                        const updated = await apiCall(`/api/${type}`);
+                        const updated = await apiCall(`/api/${type}/`);
                         state[type] = updated || [];
                         renderAll();
                     } catch (error) {
@@ -927,7 +931,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderAll();
             // Light consistency refresh for incidents to ensure latest server state
             if (itemType === 'incidents') {
-                apiCall('/api/incidents')
+                apiCall('/api/incidents/')
                     .then((incidents) => {
                         if (Array.isArray(incidents)) {
                             state.incidents = incidents;
@@ -972,7 +976,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (incidentsPollTimer) return; // already started
         incidentsPollTimer = setInterval(async () => {
             try {
-                const latest = await apiCall('/api/incidents');
+                const latest = await apiCall('/api/incidents/');
                 if (Array.isArray(latest)) {
                     // Detect newly active incidents compared to previous state
                     const prevActiveIds = new Set((state.incidents || []).filter(i => i.status === 'active').map(i => i.id));
@@ -1011,7 +1015,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Load options from backend
         try {
-            const opts = await apiCall('/api/options');
+            const opts = await apiCall('/api/options/');
             if (opts) {
                 state.settings.audioEnabled = !!opts.audio_enabled;
                 state.settings.speechEnabled = !!opts.speech_enabled;
@@ -1024,8 +1028,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const [incidents, vehicles] = await Promise.all([
-            apiCall('/api/incidents'),
-            apiCall('/api/vehicles')
+            apiCall('/api/incidents/'),
+            apiCall('/api/vehicles/')
         ]);
         state.incidents = incidents || [];
         state.vehicles = vehicles || [];
