@@ -28,9 +28,11 @@ async def on_startup():
         admin_user = await get_user_by_username(db, "admin")
         if not admin_user:
             print("No admin user found. Creating default admin...")
-            default_admin = UserCreate(username="admin", password="admin", role="admin")
+            # Use a compliant default password (min_length=6 per UserCreate schema)
+            # Consider overriding via environment variable in production.
+            default_admin = UserCreate(username="admin", password="admin123", role="admin")
             await create_user(db, default_admin)
-            print("Default admin created with username 'admin' and password 'admin'")
+            print("Default admin created with username 'admin' and password 'admin123'")
         # Ensure a default options row exists
         await options_crud.ensure_default_options(db)
     # Start background activation task

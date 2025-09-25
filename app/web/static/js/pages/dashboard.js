@@ -2,8 +2,9 @@
 (function(){
   // Dashboard page module
   function onEnter() {
-    // Enable fullscreen dashboard mode (hide header/nav, expand content)
-    document.body.classList.add('dashboard-fullscreen');
+    // Ensure normal app chrome (header/nav) is visible when using SPA dashboard
+    // Fullscreen should only be applied by the standalone /dashboard page (dashboard.html)
+    document.body.classList.remove('dashboard-fullscreen');
     // Give the layout a tick to settle, then trigger a resize so Leaflet adjusts
     setTimeout(() => {
       try { window.dispatchEvent(new Event('resize')); } catch (_) {}

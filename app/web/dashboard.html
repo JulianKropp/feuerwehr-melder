@@ -14,10 +14,17 @@
   <style>
     /* Ensure the page starts in fullscreen dashboard mode */
     body { min-height: 100vh; }
+    #media-permission { background:#fff7cc; color:#333; border:1px solid #e6d65c; padding:10px 12px; margin:8px; border-radius:6px; }
+    #media-permission.hidden { display:none; }
   </style>
 </head>
 <body class="dashboard-fullscreen">
   <main>
+    <section style="background: transparent; border:none; box-shadow:none; padding: 0 1rem 0.25rem;">
+      <div id="media-permission">
+        Audio und Sprache sind blockiert. Bitte klicken Sie irgendwo auf die Seite, um Audio/TTS zu aktivieren.
+      </div>
+    </section>
     <section style="background: transparent; border:none; box-shadow:none; padding: 0 1rem 1rem;">
       <div id="kiosk-top" style="display:flex; justify-content:space-between; align-items:center; gap:1rem; padding:0.5rem 0;">
         <div id="kiosk-weather" class="muted" style="font-size:1.25rem;"></div>

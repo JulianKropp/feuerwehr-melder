@@ -22,6 +22,116 @@
   const clockEl = document.getElementById('kiosk-clock');
   const weatherEl = document.getElementById('kiosk-weather');
 
+  // Track which incidents are active to detect newly triggered ones
+  let lastActiveIncidentIds = new Set();
+
+  // --- Alarm & Speech (TTS) ---
+  let voices = [];
+  let voicesLoaded = false;
+  let speechUnlocked = false;
+  let pendingSpeakText = null;
+
+  function loadVoices() {
+    return new Promise((resolve) => {
+      if (!('speechSynthesis' in window)) return resolve([]);
+      const list = window.speechSynthesis.getVoices();
+      if (list && list.length > 0) {
+        voices = list;
+        voicesLoaded = true;
+        resolve(voices);
+      } else {
+        window.speechSynthesis.onvoiceschanged = () => {
+          voices = window.speechSynthesis.getVoices();
+          voicesLoaded = true;
+          resolve(voices);
+        };
+      }
+    });
+  }
+
+  function pickVoiceForLang(lang) {
+    if (!voicesLoaded || !voices) return null;
+    if (!lang) return null;
+    const exact = voices.find(v => v.lang === lang);
+    if (exact) return exact;
+    const prefix = (lang || '').split('-')[0].toLowerCase();
+    const partial = voices.find(v => (v.lang || '').toLowerCase().startsWith(prefix));
+    return partial || null;
+  }
+
+  function speakText(text, lang) {
+    if (!text) return;
+    if (!('speechSynthesis' in window)) return;
+    try { window.speechSynthesis.cancel(); } catch (_) {}
+    try { window.speechSynthesis.resume(); } catch (_) {}
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang || 'de-DE';
+    const v = pickVoiceForLang(utterance.lang);
+    if (v) utterance.voice = v;
+    setTimeout(() => {
+      try { window.speechSynthesis.speak(utterance); } catch (e) { console.error('[kiosk][TTS] speak error:', e); }
+    }, 0);
+  }
+
+  function unlockSpeech() {
+    try { window.speechSynthesis.resume(); } catch (_) {}
+    speechUnlocked = true;
+    // Warm up voices
+    try {
+      const warm = new SpeechSynthesisUtterance('');
+      window.speechSynthesis.speak(warm);
+      window.speechSynthesis.cancel();
+    } catch (_) {}
+    if (pendingSpeakText) {
+      const text = pendingSpeakText;
+      pendingSpeakText = null;
+      loadVoices().then(() => speakText(text, state.settings.speechLanguage || 'de-DE'));
+    }
+    // Hide media permission banner if present
+    const banner = document.getElementById('media-permission');
+    if (banner) banner.classList.add('hidden');
+  }
+  window.addEventListener('click', unlockSpeech, { once: true });
+  window.addEventListener('keydown', unlockSpeech, { once: true });
+
+  function playAlarmAndThenSpeak(textToSpeak) {
+    const shouldPlay = !!state.settings.audioEnabled;
+    const shouldSpeak = !!state.settings.speechEnabled && 'speechSynthesis' in window;
+    let spoken = false;
+    const speakNow = () => {
+      if (spoken) return;
+      spoken = true;
+      if (!shouldSpeak) return;
+      if (!textToSpeak) return;
+      if (!speechUnlocked) {
+        pendingSpeakText = textToSpeak;
+      } else {
+        loadVoices().then(() => speakText(textToSpeak, state.settings.speechLanguage || 'de-DE'));
+      }
+    };
+    if (shouldPlay) {
+      const audio = new Audio(`/static/sound/${state.settings.alarmSound}`);
+      audio.preload = 'auto';
+      audio.currentTime = 0;
+      let fallbackTimer = setTimeout(() => speakNow(), 3000);
+      audio.addEventListener('ended', () => { clearTimeout(fallbackTimer); speakNow(); }, { once: true });
+      audio.addEventListener('loadedmetadata', () => {
+        if (!isNaN(audio.duration) && audio.duration > 0) {
+          clearTimeout(fallbackTimer);
+          fallbackTimer = setTimeout(() => speakNow(), Math.ceil(audio.duration * 1000) + 100);
+        }
+      }, { once: true });
+      audio.play().then(() => {}).catch(() => { clearTimeout(fallbackTimer); speakNow(); });
+    } else {
+      speakNow();
+    }
+  }
+
+  function triggerAlarm(message, descriptionForTTS = '') {
+    const textToSpeak = (descriptionForTTS && descriptionForTTS.trim()) ? descriptionForTTS : message;
+    playAlarmAndThenSpeak(textToSpeak);
+  }
+
   let leafletMap = null;
   let leafletMarker = null;
 
@@ -238,7 +348,18 @@
         state.settings.speechLanguage = opts.speech_language || 'de-DE';
         state.settings.weather_location = opts.weather_location || '';
       }
+      const prevActive = new Set(Array.from(lastActiveIncidentIds));
       state.incidents = Array.isArray(incidents) ? incidents : [];
+      const nowActive = new Set((state.incidents || []).filter(i => i.status === 'active').map(i => i.id));
+      // Detect newly active incidents and trigger alarm
+      const newlyActive = [];
+      nowActive.forEach(id => { if (!prevActive.has(id)) newlyActive.push(id); });
+      if (newlyActive.length > 0) {
+        (state.incidents || []).filter(i => newlyActive.includes(i.id)).forEach(i => {
+          triggerAlarm(`Einsatz gestartet: ${i.title}`, i.description || '');
+        });
+      }
+      lastActiveIncidentIds = nowActive;
       state.vehicles = Array.isArray(vehicles) ? vehicles : [];
       renderDashboardIncidents();
       renderDashboardVehicles();

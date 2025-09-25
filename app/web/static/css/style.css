@@ -201,7 +201,10 @@ form label {
     margin-bottom: 0.5rem;
 }
 
-form input[type="text"], form textarea, form select {
+form input[type="text"],
+form input[type="password"],
+form textarea,
+form select {
     width: 100%;
     padding: 0.8rem;
     border: 1px solid var(--border);
