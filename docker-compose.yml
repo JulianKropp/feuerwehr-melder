@@ -2,9 +2,28 @@ services:
   web:
     build: .
     container_name: feuerwehr-melder
-    ports:
-      - "8000:8000"
-    # Persist the SQLite database file on the host
+    # ports:
+    #   - "8000:8000"
     volumes:
-      - ./feuerwehr.db:/app/feuerwehr.db
+      - ./data/:/app/data/
     restart: unless-stopped
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.feuerwehr-secured.rule=Host(`feuerwehr.${DOMAIN}`)"
+      - "traefik.http.routers.feuerwehr-secured.entrypoints=websecure"
+      - "traefik.http.routers.feuerwehr-secured.tls.certresolver=mytlschallenge"
+      # attach both Authelia and our CSP middleware
+      - "traefik.http.routers.feuerwehr-secured.middlewares=authelia,feuerwehr-csp"
+      - "traefik.http.routers.feuerwehr-secured.service=feuerwehr-service"
+      - "traefik.http.services.feuerwehr-service.loadbalancer.server.port=8000"
+
+      # define the CSP middleware inline
+      - "traefik.http.middlewares.feuerwehr-csp.headers.contentSecurityPolicy=default-src 'self'; script-src 'self' https://unpkg.com 'unsafe-inline' 'unsafe-eval'; style-src 'self' https://unpkg.com 'unsafe-inline'; img-src 'self' data: blob: https://*.tile.openstreetmap.org; connect-src 'self' https://nominatim.openstreetmap.org https://api.open-meteo.com; frame-ancestors 'self';"
+      - "traefik.http.middlewares.feuerwehr-csp.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.feuerwehr-csp.headers.browserXssFilter=true"
+
+networks:
+  proxy:
+    external: true
