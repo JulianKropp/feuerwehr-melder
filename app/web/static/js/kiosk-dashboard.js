@@ -305,7 +305,7 @@
 
   function updateWeatherUI() {
     if (!weatherEl) return;
-    const loc = (state.settings.weather_location || '').trim();
+    const loc = (state.settings.weather_location || 'Frankfurt am Main').trim();
     if (!loc) { weatherEl.textContent = ''; return; }
     if (!state.weather) {
       weatherEl.textContent = `Wetter ${loc}: —`;
@@ -318,7 +318,7 @@
   function startWeatherLoop() {
     // Update weather periodically (e.g., every 60s)
     setInterval(() => {
-      fetchWeatherFor(state.settings.weather_location || '');
+      fetchWeatherFor(state.settings.weather_location || 'Frankfurt am Main');
     }, 60000);
   }
 
@@ -364,7 +364,7 @@
       renderDashboardIncidents();
       renderDashboardVehicles();
       // Refresh weather when options change
-      fetchWeatherFor(state.settings.weather_location || '');
+      fetchWeatherFor(state.settings.weather_location || 'Frankfurt am Main');
     } catch (e) {
       console.error('[kiosk] refreshAll failed', e);
     }

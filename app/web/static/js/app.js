@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loginLogout: document.getElementById('login-logout-btn'),
     };
     const clockElement = document.getElementById('clock');
+    const weatherElement = document.getElementById('weather');
     const incidentsList = document.getElementById('incidents-list');
     const vehiclesList = document.getElementById('vehicles-list');
     const dashboardEmpty = document.getElementById('dashboard-empty');
@@ -32,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
         speechEnable: document.getElementById('speech-enable'),
         alarmSoundSelect: document.getElementById('alarm-sound-select'),
         speechLanguageSelect: document.getElementById('speech-language-select'),
+        weatherLocationInput: document.getElementById('weather-location'),
     };
     const incidentVehiclesBox = document.getElementById('incident-vehicles');
 
@@ -82,6 +84,67 @@ document.addEventListener('DOMContentLoaded', () => {
         clockElement.textContent = new Date().toLocaleTimeString('de-DE');
     }
     setInterval(updateClock, 1000);
+
+    // --- Weather (Options-configurable) ---
+    function weatherCodeToTextDe(code) {
+        const map = {
+            0: 'Klar', 1: 'Überwiegend klar', 2: 'Teilweise bewölkt', 3: 'Bewölkt',
+            45: 'Nebel', 48: 'Reifnebel', 51: 'Nieselregen leicht', 53: 'Nieselregen', 55: 'Nieselregen stark',
+            56: 'Gefr. Nieselregen leicht', 57: 'Gefr. Nieselregen stark',
+            61: 'Regen leicht', 63: 'Regen', 65: 'Regen stark',
+            66: 'Gefr. Regen leicht', 67: 'Gefr. Regen stark',
+            71: 'Schnee leicht', 73: 'Schnee', 75: 'Schnee stark', 77: 'Schneekörner',
+            80: 'Regenschauer leicht', 81: 'Regenschauer', 82: 'Regenschauer stark',
+            85: 'Schneeschauer leicht', 86: 'Schneeschauer stark',
+            95: 'Gewitter', 96: 'Gewitter mit Hagel', 99: 'Gewitter mit starkem Hagel'
+        };
+        return map[code] || 'Wetter';
+    }
+
+    async function geocodeLocation(q) {
+        if (!q || !q.trim()) return null;
+        try {
+            const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`);
+            const data = await resp.json();
+            if (Array.isArray(data) && data.length > 0) {
+                return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+            }
+        } catch (e) { console.warn('weather geocode failed', e); }
+        return null;
+    }
+
+    async function fetchWeatherFor(locationStr) {
+        if (!weatherElement) return;
+        const loc = (locationStr || 'Frankfurt am Main').trim();
+        // If nothing configured, still show Frankfurt by default
+        if (!loc) { weatherElement.textContent = ''; return; }
+        let lat = null, lon = null;
+        try {
+            const coords = await geocodeLocation(loc);
+            if (!coords) { weatherElement.textContent = `Wetter ${loc}: —`; return; }
+            lat = coords.lat; lon = coords.lon;
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m&timezone=auto`;
+            const resp = await fetch(url);
+            if (!resp.ok) throw new Error('weather http ' + resp.status);
+            const data = await resp.json();
+            const cur = data && data.current ? data.current : null;
+            if (!cur) { weatherElement.textContent = `Wetter ${loc}: —`; return; }
+            const temp = Math.round(cur.temperature_2m);
+            const text = weatherCodeToTextDe(cur.weather_code);
+            weatherElement.textContent = `Wetter ${loc}: ${temp}°C, ${text}`;
+        } catch (e) {
+            weatherElement.textContent = `Wetter ${loc}: —`;
+            console.warn('Weather fetch failed:', e);
+        }
+    }
+
+    // Start periodic weather refresh
+    function startWeatherLoop() {
+        fetchWeatherFor(state.settings.weather_location || 'Frankfurt am Main');
+        setInterval(() => {
+            fetchWeatherFor(state.settings.weather_location || 'Frankfurt am Main');
+        }, 60000);
+    }
 
     // --- Alarm & Speech ---
     // Web Speech API helpers
@@ -520,6 +583,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     state.vehicles = latest;
                     syncIncidentVehicleStatuses();
                     renderAll();
+        // Reflect weather location into options input
+        if (options.weatherLocationInput) options.weatherLocationInput.value = state.settings.weather_location || '';
+        // Start weather refresh loop
+        startWeatherLoop();
                 }
             } catch (e) {
                 // ignore transient errors
@@ -654,13 +721,17 @@ document.addEventListener('DOMContentLoaded', () => {
             if (partial.hasOwnProperty('speechEnabled')) payload.speech_enabled = partial.speechEnabled;
             if (partial.hasOwnProperty('alarmSound')) payload.alarm_sound = partial.alarmSound;
             if (partial.hasOwnProperty('speechLanguage')) payload.speech_language = partial.speechLanguage;
+            if (partial.hasOwnProperty('weatherLocation')) payload.weather_location = partial.weatherLocation;
             const updated = await apiCall('/api/options', 'PUT', payload);
             if (updated) {
                 state.settings.audioEnabled = !!updated.audio_enabled;
                 state.settings.speechEnabled = !!updated.speech_enabled;
                 state.settings.alarmSound = updated.alarm_sound || 'gong1.mp3';
                 state.settings.speechLanguage = updated.speech_language || 'de-DE';
+                state.settings.weather_location = updated.weather_location || '';
                 renderAll();
+                // Update weather immediately when changed
+                fetchWeatherFor(state.settings.weather_location || 'Frankfurt am Main');
             }
         } catch (e) {
             console.warn('Saving options failed:', e);
@@ -682,6 +753,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (options.speechLanguageSelect) options.speechLanguageSelect.addEventListener('change', (e) => {
         state.settings.speechLanguage = e.target.value;
         saveOptions({ speechLanguage: state.settings.speechLanguage });
+    });
+    if (options.weatherLocationInput) options.weatherLocationInput.addEventListener('change', (e) => {
+        state.settings.weather_location = e.target.value || '';
+        saveOptions({ weatherLocation: state.settings.weather_location });
     });
 
     loginForm.addEventListener('submit', (e) => {
@@ -942,6 +1017,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 state.settings.speechEnabled = !!opts.speech_enabled;
                 state.settings.alarmSound = opts.alarm_sound || 'gong1.mp3';
                 state.settings.speechLanguage = opts.speech_language || 'de-DE';
+                state.settings.weather_location = opts.weather_location || '';
             }
         } catch (e) {
             console.warn('Loading options failed, using defaults:', e);

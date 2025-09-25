@@ -38,7 +38,8 @@ header h1 {
     font-weight: 700;
 }
 
-#clock {
+#clock,
+#weather {
     font-size: 1.1rem;
     padding: 0.35rem 0.75rem;
     background: var(--panel);
