@@ -275,31 +275,48 @@ body.dashboard-fullscreen #dashboard-view {
     box-shadow: none;
 }
 
-/* Make the dashboard grid fill the viewport height */
+/* Make the dashboard grid fill the viewport height so the map can fill right column */
 body.dashboard-fullscreen #dashboard-view .grid {
-    height: 100%;
-    grid-template-rows: 1fr; /* ensure full height */
+    height: 100vh;
+    grid-template-rows: 1fr; /* columns stretch full height */
 }
 
-/* Right column holds map and vehicles stacked; let map expand */
-body.dashboard-fullscreen #dashboard-view .grid > div:last-child {
+/* Left column: incidents on top, vehicles below */
+body.dashboard-fullscreen #dashboard-view .grid > div:first-child {
     display: flex;
     flex-direction: column;
     min-height: 0; /* allow flex children to shrink */
+    gap: 0.5rem; /* tighter spacing between list and vehicles */
+}
+
+/* In the left column, let the incidents list take remaining height and scroll if long */
+body.dashboard-fullscreen #dashboard-list {
+    flex: 0 0 auto; /* do not push vehicles down */
+    overflow: visible; /* let content define height */
+    margin-bottom: 0; /* do not add extra gap below list */
+    padding: 0.5rem 0.75rem 0.25rem 0.75rem; /* tighten inner spacing (was 1rem globally) */
 }
 
 /* Let the map consume remaining vertical space in fullscreen */
+/* Right column holds only the map; let map expand to fill column */
+body.dashboard-fullscreen #dashboard-view .grid > div:nth-child(2) {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
 body.dashboard-fullscreen #map {
     flex: 1 1 auto;
-    height: auto; /* height controlled by flex */
+    height: 100%; /* fill entire right column */
     margin-top: 0; /* tighter layout */
     border-radius: 0;
 }
 
 /* Vehicles panel scrolls if content is long */
+/* Vehicles panel scrolls if content is long (now shown under incidents) */
 body.dashboard-fullscreen #dashboard-vehicles {
     overflow: auto;
-    padding: 0.75rem 1rem 1rem;
+    padding: 0.5rem 1rem 1rem;
+    margin-top: 0; /* minimal gap to list */
 }
 
 /* Remove section padding just for dashboard inner content */
