@@ -1,0 +1,27 @@
+*.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pytest_cache/
+
+# Environments
+.venv/
+.env
+
+# VCS
+.git/
+.gitignore
+
+# Editor/OS
+.vscode/
+.idea/
+.DS_Store
+
+# Local DB (mounted via compose)
+feuerwehr.db
+
+# Misc
+*.log

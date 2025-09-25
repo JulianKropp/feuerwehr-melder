@@ -1,0 +1,10 @@
+services:
+  web:
+    build: .
+    container_name: feuerwehr-melder
+    ports:
+      - "8000:8000"
+    # Persist the SQLite database file on the host
+    volumes:
+      - ./feuerwehr.db:/app/feuerwehr.db
+    restart: unless-stopped
