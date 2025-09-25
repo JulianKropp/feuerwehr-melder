@@ -1,0 +1,357 @@
+:root {
+    --bg: #0f141a;
+    --panel: #151b23;
+    --text: #e6edf3;
+    --muted: #9aa7b2;
+    --primary: #e53935; /* Feuerwehr Rot */
+    --primary-600: #c62828;
+    --accent: #1976d2;  /* Blau */
+    --success: #2e7d32;
+    --warning: #ef6c00;
+    --border: #253041;
+    --card: #0f1621;
+    --shadow: 0 6px 16px rgba(0,0,0,0.35);
+    --radius: 12px;
+}
+
+body {
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    margin: 0;
+    background: linear-gradient(180deg, #0b1118 0%, #0f141a 100%);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+header {
+    background: radial-gradient(1200px 240px at 20% -20%, rgba(229,57,53,0.25), transparent),
+                radial-gradient(1200px 240px at 80% -30%, rgba(25,118,210,0.18), transparent);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header h1 {
+    margin: 0;
+    letter-spacing: 0.3px;
+    font-weight: 700;
+}
+
+#clock {
+    font-size: 1.1rem;
+    padding: 0.35rem 0.75rem;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+}
+
+nav {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10,12,16,0.35);
+    backdrop-filter: blur(6px);
+}
+
+nav button {
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 0.6rem 1rem;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+nav button:hover {
+    border-color: #33507a;
+    transform: translateY(-1px);
+}
+
+main {
+    padding: 1rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+section {
+    background: var(--panel);
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+}
+
+.hidden {
+    display: none;
+}
+
+h2 {
+    margin-top: 0;
+    color: var(--text);
+}
+
+.muted { color: var(--muted); }
+
+.grid {
+    display: grid;
+    gap: 1rem;
+}
+
+@media (min-width: 1000px) {
+    .grid-2 {
+        grid-template-columns: 1.6fr 1fr;
+    }
+}
+
+button {
+    background: linear-gradient(180deg, var(--primary), var(--primary-600));
+    color: white;
+    border: none;
+    padding: 0.7rem 1rem;
+    cursor: pointer;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    box-shadow: var(--shadow);
+}
+
+button:hover {
+    filter: brightness(1.05);
+}
+
+#options-view div {
+    margin-bottom: 1rem;
+}
+
+#options-view label {
+    margin-right: 0.5rem;
+}
+
+/* Item Lists */
+.incident-item, .vehicle-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.item-actions button {
+    margin-left: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+}
+
+.edit-btn {
+    background: linear-gradient(180deg, #1e88e5, #1565c0);
+}
+
+.delete-btn {
+    background: linear-gradient(180deg, #8e8e8e, #5f6368);
+}
+
+/* Modal Styles */
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background: rgba(3, 6, 10, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background: var(--panel);
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid var(--border);
+    width: 92%;
+    max-width: 720px;
+    border-radius: var(--radius);
+    position: relative;
+    box-shadow: var(--shadow);
+}
+
+.close-btn {
+    color: var(--muted);
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: var(--text);
+    text-decoration: none;
+}
+
+/* Form Styles */
+form label {
+    display: block;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+form input[type="text"], form textarea, form select {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid var(--border);
+    background: #0b121a;
+    color: var(--text);
+    border-radius: 10px;
+    box-sizing: border-box; /* Important */
+}
+
+form button[type="submit"] {
+    margin-top: 1.5rem;
+    width: 100%;
+}
+
+/* Map container */
+#map {
+    width: 100%;
+    height: 60vh;
+    margin-top: 1rem;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+#incident-map {
+    width: 100%;
+    height: 240px;
+    margin-top: 0.75rem;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+/* Badges */
+.badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    border: 1px solid var(--border);
+}
+.badge-active { background: rgba(46,125,50,0.15); color: #93e5a1; }
+.badge-new { background: rgba(25,118,210,0.15); color: #9fd0ff; }
+.badge-closed { background: rgba(239,108,0,0.15); color: #ffcc99; }
+
+/* --- Fullscreen Dashboard Mode --- */
+/* When viewing the dashboard on a wall monitor, hide chrome and use full viewport */
+body.dashboard-fullscreen {
+    overflow: hidden;
+}
+
+body.dashboard-fullscreen header,
+body.dashboard-fullscreen nav {
+    display: none !important;
+}
+
+body.dashboard-fullscreen main {
+    padding: 0;
+    max-width: none;
+    height: 100vh;
+}
+
+body.dashboard-fullscreen #dashboard-view {
+    height: 100vh;
+    padding: 0; /* remove inner section padding for max space */
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+}
+
+/* Make the dashboard grid fill the viewport height */
+body.dashboard-fullscreen #dashboard-view .grid {
+    height: 100%;
+    grid-template-rows: 1fr; /* ensure full height */
+}
+
+/* Right column holds map and vehicles stacked; let map expand */
+body.dashboard-fullscreen #dashboard-view .grid > div:last-child {
+    display: flex;
+    flex-direction: column;
+    min-height: 0; /* allow flex children to shrink */
+}
+
+/* Let the map consume remaining vertical space in fullscreen */
+body.dashboard-fullscreen #map {
+    flex: 1 1 auto;
+    height: auto; /* height controlled by flex */
+    margin-top: 0; /* tighter layout */
+    border-radius: 0;
+}
+
+/* Vehicles panel scrolls if content is long */
+body.dashboard-fullscreen #dashboard-vehicles {
+    overflow: auto;
+    padding: 0.75rem 1rem 1rem;
+}
+
+/* Remove section padding just for dashboard inner content */
+body.dashboard-fullscreen #dashboard-view h2 {
+    display: none; /* hide section title for kiosk-like display */
+}
+
+/* Larger, denser UI in kiosk mode */
+body.dashboard-fullscreen {
+    font-size: 20px; /* overall larger text in kiosk mode */
+}
+
+@media (min-width: 1000px) {
+  body.dashboard-fullscreen .grid-2 {
+      grid-template-columns: 1.8fr 1.2fr; /* prioritize incident column */
+  }
+}
+
+body.dashboard-fullscreen .incident-item, 
+body.dashboard-fullscreen .vehicle-item {
+    padding: 1.25rem 1.4rem;
+    font-size: 1.15rem;
+}
+
+body.dashboard-fullscreen #dashboard-list {
+    padding: 1rem;
+}
+
+body.dashboard-fullscreen #dashboard-vehicles h3 {
+    font-size: 1.45rem;
+    margin: 0.75rem 0 0.5rem 0;
+}
+
+/* Top bar inside dashboard.html */
+body.dashboard-fullscreen #kiosk-top {
+    padding: 0.4rem 1rem 0.2rem 1rem;
+}
+
+/* Larger badges and tighter layout for readability */
+body.dashboard-fullscreen .badge {
+    font-size: 0.95rem;
+    padding: 0.28rem 0.7rem;
+}
+
+/* Explicit large variants for cards injected by kiosk JS */
+body.dashboard-fullscreen .incident-item-large {
+    padding: 2rem 2rem;
+    font-size: 1.25rem; /* base boost for the whole card */
+}
+
+body.dashboard-fullscreen .vehicle-item-large {
+    padding: 1rem 1.2rem;
+}
+
+/* Make incident titles even more prominent */
+body.dashboard-fullscreen .incident-item-large strong {
+    font-size: 2.1rem;
+}

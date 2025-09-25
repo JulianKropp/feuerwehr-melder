@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Feuerwehr Melder – Dashboard</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <style>
+    /* Ensure the page starts in fullscreen dashboard mode */
+    body { min-height: 100vh; }
+  </style>
+</head>
+<body class="dashboard-fullscreen">
+  <main>
+    <section style="background: transparent; border:none; box-shadow:none; padding: 0 1rem 1rem;">
+      <div id="kiosk-top" style="display:flex; justify-content:space-between; align-items:center; gap:1rem; padding:0.5rem 0;">
+        <div id="kiosk-weather" class="muted" style="font-size:1.25rem;"></div>
+        <div id="kiosk-clock" style="font-weight:700; font-size:1.6rem;"></div>
+      </div>
+    </section>
+    <section id="dashboard-view">
+      <div id="dashboard-empty" class="muted" style="padding:1rem;">Derzeit keine Einsätze.</div>
+      <div class="grid grid-2" aria-label="Dashboard-Layout">
+        <div>
+          <div id="dashboard-list"></div>
+        </div>
+        <div>
+          <div id="map" aria-label="Einsatzkarte"></div>
+          <div id="dashboard-vehicles" aria-label="Fahrzeuge Übersicht">
+            <h3 style="margin-top:1rem;">Fahrzeuge</h3>
+            <div id="dashboard-vehicles-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin="">
+  </script>
+  <script src="/static/js/kiosk-dashboard.js"></script>
+</body>
+</html>

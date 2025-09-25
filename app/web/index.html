@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feuerwehr Melder</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <!-- Leaflet CSS for OpenStreetMap -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+</head>
+<body>
+    <header>
+        <h1>Feuerwehr Melder</h1>
+        <div id="clock"></div>
+    </header>
+
+    <nav>
+        <button id="dashboard-btn">Dashboard</button>
+        <button id="incidents-btn">Einsätze</button>
+        <button id="vehicles-btn">Fahrzeuge</button>
+        <button id="options-btn">Optionen</button>
+        <button id="login-logout-btn" style="float: right;">Login</button>
+    </nav>
+
+    <main>
+        <section id="dashboard-view">
+            <h2>Aktive Einsätze</h2>
+            <div id="dashboard-empty">Derzeit keine Einsätze.</div>
+            <div class="grid grid-2" aria-label="Dashboard-Layout">
+                <div id="dashboard-list"></div>
+                <div>
+                    <div id="map" class="hidden" aria-label="Einsatzkarte"></div>
+                    <div id="dashboard-vehicles" aria-label="Fahrzeuge Übersicht">
+                        <h3 style="margin-top:1rem;">Fahrzeuge</h3>
+                        <div id="dashboard-vehicles-list"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="incidents-view" class="hidden">
+            <h2>Einsätze verwalten</h2>
+            <button id="create-incident-btn">Neuer Einsatz</button>
+            <div id="incidents-list">
+                <!-- List of incidents -->
+            </div>
+        </section>
+
+        <section id="vehicles-view" class="hidden">
+            <h2>Fahrzeuge verwalten</h2>
+            <button id="create-vehicle-btn">Neues Fahrzeug</button>
+            <div id="vehicles-list">
+                <!-- List of vehicles -->
+            </div>
+        </section>
+
+        <section id="options-view" class="hidden">
+            <h2>Optionen</h2>
+            <div>
+                <label for="audio-enable">Audio aktivieren</label>
+                <input type="checkbox" id="audio-enable" checked>
+            </div>
+            <div>
+                <label for="speech-enable">Sprachausgabe aktivieren</label>
+                <input type="checkbox" id="speech-enable" checked>
+            </div>
+            <div>
+                <label for="speech-language-select">Sprache (TTS)</label>
+                <select id="speech-language-select">
+                    <option value="de-DE">Deutsch (de-DE)</option>
+                    <option value="en-US">English (en-US)</option>
+                    <option value="fr-FR">Français (fr-FR)</option>
+                    <option value="it-IT">Italiano (it-IT)</option>
+                    <option value="es-ES">Español (es-ES)</option>
+                </select>
+            </div>
+            <div>
+                <label for="alarm-sound-select">Alarmton</label>
+                <select id="alarm-sound-select">
+                    <option value="gong1.mp3">Gong 1</option>
+                    <option value="gong2.mp3">Gong 2</option>
+                    <option value="gong3.mp3">Gong 3</option>
+                </select>
+                <button id="test-alarm-btn">Test</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Incident Modal -->
+    <div id="incident-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2 id="incident-modal-title">Einsatz</h2>
+            <form id="incident-form">
+                <input type="hidden" id="incident-id">
+                <label for="incident-title">Titel</label>
+                <input type="text" id="incident-title" required>
+                <label for="incident-description">Beschreibung</label>
+                <textarea id="incident-description"></textarea>
+                <label for="incident-address">Adresse</label>
+                <input type="text" id="incident-address" placeholder="Straße Hausnr., PLZ Ort" required>
+                <div style="display:flex; gap: 0.5rem;">
+                    <div style="flex:1;">
+                        <label for="incident-lat">Breitengrad (Lat)</label>
+                        <input type="number" step="any" id="incident-lat" placeholder="z.B. 49.1234">
+                    </div>
+                    <div style="flex:1;">
+                        <label for="incident-lon">Längengrad (Lon)</label>
+                        <input type="number" step="any" id="incident-lon" placeholder="z.B. 8.6789">
+                    </div>
+                </div>
+                <div id="incident-map" class="hidden" aria-label="Einsatzort Vorschau"></div>
+                <div style="display:flex; gap: 0.5rem; align-items:flex-end;">
+                    <div style="flex:1;">
+                        <label for="incident-date">Start (Datum)</label>
+                        <input type="date" id="incident-date">
+                    </div>
+                    <div style="flex:1;">
+                        <label for="incident-time">Start (Uhrzeit)</label>
+                        <input type="time" id="incident-time" step="60">
+                    </div>
+                </div>
+                <label>Fahrzeuge</label>
+                <div id="incident-vehicles" aria-label="Fahrzeuge Auswahl">
+                    <!-- Fahrzeug-Checkboxen werden dynamisch geladen -->
+                </div>
+                <label for="incident-status">Status</label>
+                <select id="incident-status">
+                    <option value="new">Neu</option>
+                    <option value="active">Aktiv</option>
+                    <option value="closed">Geschlossen</option>
+                </select>
+                <button type="submit">Speichern</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Vehicle Modal -->
+    <div id="vehicle-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2 id="vehicle-modal-title">Fahrzeug</h2>
+            <form id="vehicle-form">
+                <input type="hidden" id="vehicle-id">
+                <label for="vehicle-name">Name</label>
+                <input type="text" id="vehicle-name" required>
+                <label for="vehicle-status">Status</label>
+                <select id="vehicle-status">
+                    <option value="available">Verfügbar</option>
+                    <option value="unavailable">Nicht verfügbar</option>
+                    <option value="in_maintenance">In Wartung</option>
+                </select>
+                <button type="submit">Speichern</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Login</h2>
+            <form id="login-form">
+                <label for="username">Benutzername</label>
+                <input type="text" id="username" required>
+                <label for="password">Passwort</label>
+                <input type="password" id="password" required>
+                <button type="submit">Login</button>
+                <p id="login-error" style="color: red; display: none;"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Leaflet JS for OpenStreetMap -->
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin="">
+    </script>
+    <script src="/static/js/router.js"></script>
+    <script src="/static/js/pages/dashboard.js"></script>
+    <script src="/static/js/pages/incidents.js"></script>
+    <script src="/static/js/pages/vehicles.js"></script>
+    <script src="/static/js/pages/options.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
