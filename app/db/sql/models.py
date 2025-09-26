@@ -10,11 +10,6 @@ class IncidentStatus(str, enum.Enum):
     active = "active"
     closed = "closed"
 
-class VehicleStatus(str, enum.Enum):
-    available = "available"
-    unavailable = "unavailable"
-    in_maintenance = "in_maintenance"
-
 class UserRole(str, enum.Enum):
     admin = "admin"
     viewer = "viewer"
@@ -45,7 +40,7 @@ class Vehicle(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True)
-    status = Column(Enum(VehicleStatus), default=VehicleStatus.available)
+    status = Column(Integer, nullable=False, default=1)
     incidents = relationship(
         "Incident",
         secondary="incident_vehicles",
@@ -68,7 +63,6 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     hashed_password = Column(String)
     role = Column(Enum(UserRole), default=UserRole.viewer)
-
 
 class Options(Base):
     __tablename__ = "options"

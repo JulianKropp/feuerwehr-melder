@@ -284,12 +284,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function triggerAlarm(message, descriptionForTTS = '') {
-        // Speak description after alarm sound
-        const textToSpeak = descriptionForTTS && descriptionForTTS.trim().length > 0 ? descriptionForTTS : message;
-        console.log('[ALARM] Triggered with', { message, hasDescription: !!descriptionForTTS, lang: state.settings.speechLanguage });
+    function triggerAlarm(message) {
+        // Normalize input
+        const trimmed = typeof message === 'string' ? message.trim() : '';
+        const textToSpeak = trimmed; // will be '' if not provided or only whitespace
+      
+        console.log('[ALARM] Triggered with', {
+          message: trimmed,
+          hasDescription: trimmed.length > 0,
+          lang: state.settings.speechLanguage
+        });
+      
         playAlarmAndThenSpeak(textToSpeak);
-    }
+      }
 
     // --- Modal Management ---
     function openModal(modal, title, data = {}) {
@@ -355,7 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function vehicleBadges(vehicles) {
         if (!vehicles || vehicles.length === 0) return '';
-        return '<div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:6px;">' + vehicles.map(v => `<span class="badge ${v.status === 'available' ? 'badge-new' : 'badge-closed'}" title="${v.status}">${v.name}</span>`).join('') + '</div>';
+        return '<div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:6px;">' + vehicles.map(v => `<span class="badge" title="${v.status}">${v.name} (${v.status})</span>`).join('') + '</div>';
     }
 
     function createItemDiv(item, type) {
@@ -526,13 +533,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         const statusBadge = (status) => {
-            const map = {
-                available: 'badge-new',
-                unavailable: 'badge-closed',
-                in_maintenance: 'badge-closed'
-            };
-            const cls = map[status] || 'badge';
-            return `<span class="badge ${cls}" title="${status}">${status}</span>`;
+            // Display numeric status directly
+            return `<span class="badge" title="${status}">${status}</span>`;
         };
         state.vehicles.forEach(v => {
             const row = document.createElement('div');
@@ -614,7 +616,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         if (justTriggered.length > 0) {
             // Play alarm for each newly triggered incident
-            justTriggered.forEach(i => triggerAlarm(`Einsatz gestartet: ${i.title}`));
+            justTriggered.forEach(i => triggerAlarm(`Neuer Einsatz: ${i.title}: ${i.description || ''}. Fahrzeuge: ${i.vehicles?.map(v => v.name).join(', ') || ''} ausrücken zu ${i.address}`));
             // Re-render dashboard to move items into the triggered list/map
             renderDashboardIncidents();
         }
@@ -815,7 +817,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const id = e.target.querySelector('#vehicle-id').value;
         const data = {
             name: e.target.querySelector('#vehicle-name').value,
-            status: e.target.querySelector('#vehicle-status').value,
+            status: parseInt(e.target.querySelector('#vehicle-status').value, 10),
         };
         try {
             await apiCall(id ? `/api/vehicles/${id}` : '/api/vehicles/', id ? 'PUT' : 'POST', data);
@@ -886,7 +888,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('WS message received:', data);
 
             if (data.type === 'alarm') {
-                triggerAlarm(data.message, data.description || '');
+                triggerAlarm(`Neuer Einsatz! ${itemData.title}: ${itemData.description || ''}. Fahrzeuge ${itemData.vehicles.map(v => v.name).join(', ')} ausrücken zu ${itemData.address}`);
                 return;
             }
 
@@ -899,7 +901,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (itemType === 'incidents') {
                     // Play alarm if the created incident is already active
                     if (itemData.status === 'active') {
-                        triggerAlarm(`Einsatz gestartet: ${itemData.title}`, itemData.description || '', state.settings.speechLanguage);
+                        triggerAlarm(`Neuer Einsatz! ${itemData.title}: ${itemData.description || ''}. Fahrzeuge ${itemData.vehicles.map(v => v.name).join(', ')} ausrücken zu ${itemData.address}`);
                     }
                 }
             } else if (action === 'updated') {
@@ -910,7 +912,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const wasActive = prev && prev.status === 'active';
                         const nowActive = itemData.status === 'active';
                         if (!wasActive && nowActive) {
-                            triggerAlarm(`Einsatz gestartet: ${itemData.title}`, itemData.description || '');
+                            triggerAlarm(`Neuer Einsatz! ${itemData.title}: ${itemData.description || ''}. Fahrzeuge ${itemData.vehicles.map(v => v.name).join(', ')} ausrücken zu ${itemData.address}`);
                         }
                     }
                     state[itemType][index] = itemData;
@@ -918,7 +920,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Item not known yet: add it and trigger alarm if active
                     state[itemType].push(itemData);
                     if (itemType === 'incidents' && itemData.status === 'active') {
-                        triggerAlarm(`Einsatz gestartet: ${itemData.title}`, itemData.description || '');
+                        triggerAlarm(`Neuer Einsatz! ${itemData.title}: ${itemData.description || ''}. Fahrzeuge ${itemData.vehicles.map(v => v.name).join(', ')} ausrücken zu ${itemData.address}`);
                     }
                 }
             } else if (action === 'deleted') {
@@ -982,7 +984,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const prevActiveIds = new Set((state.incidents || []).filter(i => i.status === 'active').map(i => i.id));
                     const newActive = latest.filter(i => i.status === 'active' && !prevActiveIds.has(i.id));
                     if (newActive.length > 0) {
-                        newActive.forEach(i => triggerAlarm(`Einsatz gestartet: ${i.title}`, i.description || ''));
+                        newActive.forEach(i => triggerAlarm(`Neuer Einsatz: ${i.title}: ${i.description || ''}. Fahrzeuge: ${i.vehicles?.map(v => v.name).join(', ') || ''} ausrücken zu ${i.address}`));
                     }
                     if (incidentsChanged(state.incidents, latest)) {
                         state.incidents = latest;

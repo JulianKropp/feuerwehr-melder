@@ -133,6 +133,6 @@ class IncidentOut(BaseModel):
 class VehicleRef(BaseModel):
     id: int
     name: str
-    status: str
+    status: int
 
     model_config = ConfigDict(from_attributes=True)

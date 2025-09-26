@@ -358,14 +358,14 @@ body.dashboard-fullscreen #kiosk-top {
 
 /* Larger badges and tighter layout for readability */
 body.dashboard-fullscreen .badge {
-    font-size: 0.95rem;
-    padding: 0.28rem 0.7rem;
+    font-size: 1.3rem;
+    padding: 0.35rem 0.9rem;
 }
 
 /* Explicit large variants for cards injected by kiosk JS */
 body.dashboard-fullscreen .incident-item-large {
     padding: 2rem 2rem;
-    font-size: 1.25rem; /* base boost for the whole card */
+    font-size: 2.25rem; /* base boost for the whole card */
 }
 
 body.dashboard-fullscreen .vehicle-item-large {

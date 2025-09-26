@@ -127,9 +127,8 @@
     }
   }
 
-  function triggerAlarm(message, descriptionForTTS = '') {
-    const textToSpeak = (descriptionForTTS && descriptionForTTS.trim()) ? descriptionForTTS : message;
-    playAlarmAndThenSpeak(textToSpeak);
+  function triggerAlarm(message) {
+    playAlarmAndThenSpeak(message);
   }
 
   let leafletMap = null;
@@ -137,7 +136,7 @@
 
   function vehicleBadges(vehicles) {
     if (!vehicles || vehicles.length === 0) return '';
-    return '<div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:6px;">' + vehicles.map(v => `<span class="badge ${v.status === 'available' ? 'badge-new' : 'badge-closed'}" title="${v.status}">${v.name}</span>`).join('') + '</div>';
+    return '<div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:6px;">' + vehicles.map(v => `<span class="badge" title="${v.status}">${v.name} (${v.status})</span>`).join('') + '</div>';
   }
 
   async function ensureCoords(incident) {
@@ -165,11 +164,8 @@
       return;
     }
     const statusBadge = (status) => {
-      const classMap = { available: 'badge-new', unavailable: 'badge-closed', in_maintenance: 'badge-closed' };
-      const labelMap = { available: 'Verfügbar', unavailable: 'Nicht verfügbar', in_maintenance: 'In Wartung' };
-      const cls = classMap[status] || 'badge';
-      const label = labelMap[status] || String(status || '').toString();
-      return `<span class="badge ${cls}" title="${label}">${label}</span>`;
+      // Show numeric status directly
+      return `<span class=\"badge\" title=\"${status}\">${status}</span>`;
     };
     state.vehicles.forEach(v => {
       const row = document.createElement('div');
@@ -211,10 +207,10 @@
       const vehiclesHtml = inc.vehicles && inc.vehicles.length ? vehicleBadges(inc.vehicles) : '';
       const desc = (inc.description || '').trim();
       div.innerHTML = `<div style="font-size:1.5rem; line-height:1.55;">
-        <strong style="font-size:1.9rem;">${inc.title}</strong>
-        <span class=\"muted\"> – Status: ${incidentStatusDe(inc.status)}</span><br>
-        ${inc.address ?? ''}${when ? ' • ' + when : ''}
-        ${desc ? `<div style='margin-top:14px; white-space:pre-wrap;'>${desc}</div>` : ''}
+        <strong style="font-size:2.6rem;">${inc.title}</strong>
+        <span class=\"muted\"> – Status: ${incidentStatusDe(inc.status)}</span>
+        ${desc ? `<div style='margin-top:10px; white-space:pre-wrap;'>${desc}</div>` : ''}
+        <div style="margin-top:8px;">${inc.address ?? ''}${when ? ' • ' + when : ''}</div>
         ${vehiclesHtml ? '<div>' + vehiclesHtml + '</div>' : ''}
       </div>`;
       listEl.appendChild(div);
@@ -360,7 +356,7 @@
       nowActive.forEach(id => { if (!prevActive.has(id)) newlyActive.push(id); });
       if (newlyActive.length > 0) {
         (state.incidents || []).filter(i => newlyActive.includes(i.id)).forEach(i => {
-          triggerAlarm(`Einsatz gestartet: ${i.title}`, i.description || '');
+          triggerAlarm(`Neuer Einsatz: ${i.title}: ${i.description || ''}. Fahrzeuge ${i.vehicles.map(v => v.name).join(', ')} ausrücken zu ${i.address}`);
         });
       }
       lastActiveIncidentIds = nowActive;
