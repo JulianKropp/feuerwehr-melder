@@ -18,7 +18,12 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 # --- Password Hashing ---
 class PasswordManager:
     def __init__(self):
-        self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        # Prefer pbkdf2_sha256 to avoid importing the bcrypt backend during startup.
+        # Keep bcrypt-based schemes for compatibility if needed later.
+        self.pwd_context = CryptContext(
+            schemes=["pbkdf2_sha256", "bcrypt_sha256", "bcrypt"],
+            deprecated="auto",
+        )
 
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         return self.pwd_context.verify(plain_password, hashed_password)
