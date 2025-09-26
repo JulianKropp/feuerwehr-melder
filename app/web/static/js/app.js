@@ -362,7 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function vehicleBadges(vehicles) {
         if (!vehicles || vehicles.length === 0) return '';
-        return '<div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:6px;">' + vehicles.map(v => `<span class="badge" title="${v.status}">${v.name} (${v.status})</span>`).join('') + '</div>';
+        return '<div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:6px;">' + vehicles.map(v => `<span class="badge badge-lg" title="${v.status}">${v.name} (${v.status})</span>`).join('') + '</div>';
     }
 
     function createItemDiv(item, type) {

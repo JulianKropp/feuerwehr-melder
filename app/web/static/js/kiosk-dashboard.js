@@ -136,7 +136,9 @@
 
   function vehicleBadges(vehicles) {
     if (!vehicles || vehicles.length === 0) return '';
-    return '<div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:6px;">' + vehicles.map(v => `<span class="badge" title="${v.status}">${v.name} (${v.status})</span>`).join('') + '</div>';
+    // Use inline style to ensure larger size regardless of stylesheet caching/precedence
+    const badgeStyle = 'font-size:2.0rem; padding:0.55rem 1.25rem; line-height:1.05;';
+    return '<div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:10px;">' + vehicles.map(v => `<span class="badge badge-lg" style="${badgeStyle}" title="${v.status}">${v.name} (${v.status})</span>`).join('') + '</div>';
   }
 
   async function ensureCoords(incident) {
@@ -206,7 +208,7 @@
       const when = inc.scheduled_at ? new Date(inc.scheduled_at).toLocaleString('de-DE') : '';
       const vehiclesHtml = inc.vehicles && inc.vehicles.length ? vehicleBadges(inc.vehicles) : '';
       const desc = (inc.description || '').trim();
-      div.innerHTML = `<div style="font-size:1.5rem; line-height:1.55;">
+      div.innerHTML = `<div style="font-size:2.5rem; line-height:1.55;">
         <strong style="font-size:2.6rem;">${inc.title}</strong>
         <span class=\"muted\"> – Status: ${incidentStatusDe(inc.status)}</span>
         ${desc ? `<div style='margin-top:10px; white-space:pre-wrap;'>${desc}</div>` : ''}

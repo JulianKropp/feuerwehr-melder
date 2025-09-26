@@ -247,6 +247,10 @@ form button[type="submit"] {
     font-size: 0.75rem;
     border: 1px solid var(--border);
 }
+.badge-lg {
+    font-size: 0.5rem;
+    padding: 0.35rem 0.85rem;
+}
 .badge-active { background: rgba(46,125,50,0.15); color: #93e5a1; }
 .badge-new { background: rgba(25,118,210,0.15); color: #9fd0ff; }
 .badge-closed { background: rgba(239,108,0,0.15); color: #ffcc99; }
@@ -360,6 +364,16 @@ body.dashboard-fullscreen #kiosk-top {
 body.dashboard-fullscreen .badge {
     font-size: 1.3rem;
     padding: 0.35rem 0.9rem;
+}
+body.dashboard-fullscreen .badge-lg {
+    font-size: 1.6rem;
+    padding: 0.45rem 1.1rem;
+}
+/* Make badges inside large incident cards extra prominent */
+body.dashboard-fullscreen .incident-item-large .badge-lg {
+    font-size: 2.6rem; /* larger than card base 2.25rem */
+    padding: 0.55rem 1.25rem;
+    line-height: 1.05;
 }
 
 /* Explicit large variants for cards injected by kiosk JS */
