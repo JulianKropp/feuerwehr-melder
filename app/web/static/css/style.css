@@ -386,6 +386,20 @@ body.dashboard-fullscreen .vehicle-item-large {
     padding: 1rem 1.2rem;
 }
 
+/* --- Active incident blink effect (kiosk) --- */
+@keyframes blink-bg-red {
+    0%     { background-color: rgba(229,57,53,0.55); border-color: rgba(229,57,53,0.8); }
+    50%    { background-color: rgba(229,57,53,0.55); border-color: rgba(229,57,53,0.8); }
+    50.01% { background-color: var(--card); border-color: var(--border); }
+    100%   { background-color: var(--card); border-color: var(--border); }
+}
+
+/* Apply to large incident cards in kiosk mode */
+body.dashboard-fullscreen .incident-item-large.blink-active {
+    animation: blink-bg-red 2s linear infinite;
+    transition: background-color 150ms ease-in-out, border-color 150ms ease-in-out, box-shadow 150ms ease-in-out;
+}
+
 /* Make incident titles even more prominent */
 body.dashboard-fullscreen .incident-item-large strong {
     font-size: 2.1rem;

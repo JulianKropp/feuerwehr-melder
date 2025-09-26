@@ -204,7 +204,9 @@
 
     active.slice(0, 3).forEach(inc => {
       const div = document.createElement('div');
-      div.className = 'incident-item incident-item-large';
+      // Add blink-active so CSS animation runs continuously; inline style as fallback
+      div.className = 'incident-item incident-item-large blink-active';
+      div.style.animation = 'blink-bg-red 2s linear infinite';
       const when = inc.scheduled_at ? new Date(inc.scheduled_at).toLocaleString('de-DE') : '';
       const vehiclesHtml = inc.vehicles && inc.vehicles.length ? vehicleBadges(inc.vehicles) : '';
       const desc = (inc.description || '').trim();
@@ -217,6 +219,8 @@
       </div>`;
       listEl.appendChild(div);
     });
+
+    // Blinking handled purely via CSS class 'blink-active'
 
     // Map: show most recent active incident
     const preferred = active
